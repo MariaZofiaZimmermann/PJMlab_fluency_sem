@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Countdown Experiment</title>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/jspsych.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-html-keyboard-response.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/css/jspsych.css" rel="stylesheet" />
+  <style>
+    video {
+      width: 800px;
+      max-width: 90%;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .countdown {
+      font-size: 64px;
+      text-align: center;
+      margin-top: 30px;
+    }
+    button {
+      font-size: 24px;
+      padding: 10px 25px;
+    }
+  </style>
+</head>
+<body></body>
+
+<script>
+const timeline = [];
+
+
+timeline.push({
+  type: 'html-keyboard-response',
+  stimulus: `
+    <div style="text-align:center;">
+      <button onclick="jsPsych.finishTrial()" style="font-size: 24px; padding: 10px 25px;">START</button>
+    </div>
+  `,
+  choices: jsPsych.NO_KEYS
+});
+
+
+
+
+// 2. test_video.mp4 + 15s timer
+timeline.push({
+  type: 'html-keyboard-response',
+  stimulus: `
+    <div style="text-align:center;">
+      <video id="testVideo" autoplay muted playsinline>
+        <source src="test_video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  `,
+  choices: jsPsych.NO_KEYS,
+  trial_duration: null,
+  on_load: function () {
+    document.getElementById('testVideo').addEventListener('ended', () => jsPsych.finishTrial());
+  }
+});
+
+for (let i = 15; i >= 0; i--) {
+  timeline.push({
+    type: 'html-keyboard-response',
+    stimulus: `<div class="countdown">${i}</div>`,
+    choices: jsPsych.NO_KEYS,
+    trial_duration: 1000
+  });
+}
+
+// Function to add exp video + 60s timer with beeps
+function addExpBlock(videoFile) {
+  timeline.push({
+    type: 'html-keyboard-response',
+    stimulus: `
+      <div style="text-align:center;">
+        <video id="expVideo" autoplay muted playsinline>
+          <source src="${videoFile}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    `,
+    choices: jsPsych.NO_KEYS,
+    trial_duration: null,
+    on_load: function () {
+      document.getElementById('expVideo').addEventListener('ended', () => jsPsych.finishTrial());
+    }
+  });
+
+  // Start beep + 60
+  timeline.push({
+    type: 'html-keyboard-response',
+    stimulus: `
+      <audio autoplay>
+        <source src="beep.mp3" type="audio/mpeg">
+      </audio>
+      <div class="countdown">60</div>
+    `,
+    choices: jsPsych.NO_KEYS,
+    trial_duration: 1000
+  });
+
+  for (let i = 59; i >= 0; i--) {
+    timeline.push({
+      type: 'html-keyboard-response',
+      stimulus: `<div class="countdown">${i}</div>`,
+      choices: jsPsych.NO_KEYS,
+      trial_duration: 1000
+    });
+  }
+
+  // Double beep
+  timeline.push({
+    type: 'html-keyboard-response',
+    stimulus: `
+      <audio autoplay>
+        <source src="double_beep.mp3" type="audio/mpeg">
+      </audio>
+      <div class="countdown">Koniec czasu</div>
+    `,
+    choices: jsPsych.NO_KEYS,
+    trial_duration: 2000
+  });
+}
+
+
+// Video with START button after 15-second timer
+timeline.push({
+  type: 'html-keyboard-response',
+  stimulus: `
+    <div style="text-align:center;">
+      <video id="startExpVideo" width="800" autoplay muted playsinline controls>
+        <source src="start_exp_video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <br />
+      <button onclick="jsPsych.finishTrial()" style="font-size: 24px; padding: 10px 25px;">DALEJ</button>
+    </div>
+  `,
+  choices: jsPsych.NO_KEYS
+});
+
+// 3–5. Add exp_video1, 2, 3 + 60s countdowns
+
+addExpBlock('exp_video1.mp4');
+addExpBlock('exp_video2.mp4');
+addExpBlock('exp_video3.mp4');
+
+// 6. Final screen
+timeline.push({
+  type: 'html-keyboard-response',
+  stimulus: '<p style="font-size: 28px; text-align: center;">KONIEC</p>',
+  choices: jsPsych.NO_KEYS,
+  trial_duration: 3000
+});
+
+// Start experiment
+jsPsych.init({ timeline });
+</script>
+</html>
