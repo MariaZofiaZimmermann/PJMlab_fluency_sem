@@ -22,6 +22,11 @@
       text-align: center;
       margin-top: 30px;
     }
+    .final-text {
+      font-size: 48px;
+      text-align: center;
+      margin-top: 30px;
+    }
     button {
       font-size: 24px;
       padding: 10px 25px;
@@ -80,8 +85,8 @@ timeline.push({
   trial_duration: 2000
 });
 
-// Function to add exp video + 60s timer with beeps and "DALEJ" button
-function addExpBlock(videoFile) {
+// Function to add exp video + 60s timer + beep + end screen
+function addExpBlock(videoFile, isFinal = false) {
   timeline.push({
     type: 'html-keyboard-response',
     stimulus: `
@@ -121,20 +126,31 @@ function addExpBlock(videoFile) {
     });
   }
 
-  // Double beep + KONIEC CZASU + DALEJ (smaller font)
-  timeline.push({
-    type: 'html-keyboard-response',
-    stimulus: `
-      <audio autoplay>
-        <source src="double_beep.mp3" type="audio/mpeg">
-      </audio>
-      <div class="end-text">KONIEC CZASU</div>
-      <div style="text-align: center; margin-top: 20px;">
-        <button onclick="jsPsych.finishTrial()" style="font-size: 24px; padding: 10px 25px;">DALEJ</button>
-      </div>
-    `,
-    choices: jsPsych.NO_KEYS
-  });
+  // End screen logic
+  if (!isFinal) {
+    // Intermediate blocks: double beep + KONIEC CZASU + DALEJ
+    timeline.push({
+      type: 'html-keyboard-response',
+      stimulus: `
+        <audio autoplay>
+          <source src="double_beep.mp3" type="audio/mpeg">
+        </audio>
+        <div class="end-text">KONIEC CZASU</div>
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="jsPsych.finishTrial()" style="font-size: 24px; padding: 10px 25px;">DALEJ</button>
+        </div>
+      `,
+      choices: jsPsych.NO_KEYS
+    });
+  } else {
+    // Final block: show KONIEC only, no button
+    timeline.push({
+      type: 'html-keyboard-response',
+      stimulus: `<div class="final-text">KONIEC</div>`,
+      choices: jsPsych.NO_KEYS,
+      trial_duration: 3000
+    });
+  }
 }
 
 // Start exp video + DALEJ button
@@ -156,17 +172,10 @@ timeline.push({
 // Experimental videos
 addExpBlock('exp_video1.mp4');
 addExpBlock('exp_video2.mp4');
-addExpBlock('exp_video3.mp4');
-
-// Final screen
-timeline.push({
-  type: 'html-keyboard-response',
-  stimulus: '<p style="font-size: 28px; text-align: center;">KONIEC</p>',
-  choices: jsPsych.NO_KEYS,
-  trial_duration: 3000
-});
+addExpBlock('exp_video3.mp4', true); // Final block – ends with KONIEC only
 
 // Start experiment
 jsPsych.init({ timeline });
 </script>
 </html>
+
